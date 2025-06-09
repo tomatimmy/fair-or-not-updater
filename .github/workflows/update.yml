@@ -1,0 +1,35 @@
+name: Update Screener Data
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout updater repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run update script
+        run: python update_screener.py
+
+      - name: Push latest.json to frontend repo
+        run: |
+          git clone https://x-access-token:${{ secrets.FAIR_TOKEN }}@github.com/tomatimmy/fair-or-not.git frontend
+          cp latest.json frontend/latest.json
+          cd frontend
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add latest.json
+          git commit -m "Update latest.json"
+          git push
