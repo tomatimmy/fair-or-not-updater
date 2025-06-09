@@ -1,4 +1,4 @@
-name: Update Screener Data
+name: Update Screener
 
 on:
   schedule:
@@ -6,30 +6,27 @@ on:
   workflow_dispatch:
 
 jobs:
-  update:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout updater repo
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.x'
 
-      - name: Install dependencies
-        run: pip install requests
+      - name: Install yfinance
+        run: pip install yfinance
 
-      - name: Run update script
+      - name: Run Screener
         run: python update_screener.py
 
-      - name: Push latest.json to frontend repo
+      - name: Commit and Push latest.json
         run: |
-          git clone https://x-access-token:${{ secrets.FAIR_TOKEN }}@github.com/tomatimmy/fair-or-not.git frontend
-          cp latest.json frontend/latest.json
-          cd frontend
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@users.noreply.github.com'
           git add latest.json
-          git commit -m "Update latest.json"
+          git commit -m "Update latest.json" || echo "No changes to commit"
           git push
